@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Reportes · HealthAnalytics{% endblock %}
+{% block content %}
+<header class="ha-page-head">
+  <div>
+    <span class="ha-tag">Exportaciones</span>
+    <h1 class="ha-h1">Reportes clínicos</h1>
+    <p class="ha-muted">{{ total }} pacientes disponibles para exportar.</p>
+  </div>
+</header>
+
+<section class="ha-grid-3">
+  <a class="ha-card ha-export" href="/api/reportes/csv/">
+    <span class="ha-export-icon">CSV</span>
+    <h3>Hoja CSV</h3>
+    <p class="ha-muted">Compatible con Excel, Google Sheets y herramientas de BI.</p>
+  </a>
+  <a class="ha-card ha-export" href="/api/reportes/xlsx/">
+    <span class="ha-export-icon">XLSX</span>
+    <h3>Excel</h3>
+    <p class="ha-muted">Libro con formato listo para análisis.</p>
+  </a>
+  <a class="ha-card ha-export" href="/api/reportes/pdf/">
+    <span class="ha-export-icon">PDF</span>
+    <h3>Reporte PDF</h3>
+    <p class="ha-muted">Documento ejecutivo con los primeros 500 pacientes.</p>
+  </a>
+</section>
+{% endblock %}

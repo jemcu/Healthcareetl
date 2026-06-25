@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: healthanalytics-ips
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: >-
+      pip install --only-binary=:all: pandas numpy scikit-learn &&
+      pip install -r requirements.txt &&
+      python manage.py collectstatic --noinput
+    startCommand: python manage.py migrate && python manage.py create_default_admin && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 3
+    healthCheckPath: /api/schema/
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.4
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"
+      - key: DATABASE_URL
+        fromDatabase: 
+          name: healthanalytics-db
+          property: connectionString
+databases:
+  - name: healthanalytics-db
+    plan: free
+    databaseName: healthanalytics
+    user: healthanalytics

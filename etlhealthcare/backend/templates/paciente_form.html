@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Nuevo paciente · HealthAnalytics{% endblock %}
+
+{% block content %}
+<header class="ha-page-head">
+  <div>
+    <span class="ha-tag">Cohorte</span>
+    <h1 class="ha-h1">Nuevo paciente</h1>
+    <p class="ha-muted">Ingresa los datos clínicos manualmente. Usa <strong>Predict IA</strong> para estimar el riesgo automáticamente.</p>
+  </div>
+  <a href="{% url 'pacientes' %}" class="ha-btn ha-btn--ghost">← Volver</a>
+</header>
+
+{% if messages %}
+  {% for msg in messages %}
+    <div class="ha-alert ha-alert--{{ msg.tags }}">{{ msg }}</div>
+  {% endfor %}
+{% endif %}
+
+<article class="ha-card">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="ha-form-grid">
+
+      <div class="ha-form-section">
+        <h4 class="ha-form-section__title">Datos personales</h4>
+        <div class="ha-field">
+          <label for="{{ form.id_paciente.id_for_label }}">ID Paciente</label>
+          {{ form.id_paciente }}
+          {% if form.id_paciente.errors %}<span class="ha-field-error">{{ form.id_paciente.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="ha-field">
+          <label for="{{ form.nombres.id_for_label }}">Nombres</label>
+          {{ form.nombres }}
+          {% if form.nombres.errors %}<span class="ha-field-error">{{ form.nombres.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="ha-field">
+          <label for="{{ form.apellidos.id_for_label }}">Apellidos</label>
+          {{ form.apellidos }}
+          {% if form.apellidos.errors %}<span class="ha-field-error">{{ form.apellidos.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="ha-field-row">
+          <div class="ha-field">
+            <label for="{{ form.edad.id_for_label }}">Edad</label>
+            {{ form.edad }}
+            {% if form.edad.errors %}<span class="ha-field-error">{{ form.edad.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="ha-field">
+            <label for="{{ form.sexo.id_for_label }}">Sexo</label>
+            {{ form.sexo }}
+            {% if form.sexo.errors %}<span class="ha-field-error">{{ form.sexo.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="ha-form-section">
+        <h4 class="ha-form-section__title">Medidas corporales</h4>
+        <div class="ha-field-row">
+          <div class="ha-field">
+            <label for="{{ form.peso.id_for_label }}">Peso (kg)</label>
+            {{ form.peso }}
+            {% if form.peso.errors %}<span class="ha-field-error">{{ form.peso.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="ha-field">
+            <label for="{{ form.altura.id_for_label }}">Altura (m)</label>
+            {{ form.altura }}
+            {% if form.altura.errors %}<span class="ha-field-error">{{ form.altura.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="ha-form-section">
+        <h4 class="ha-form-section__title">Signos vitales y laboratorio</h4>
+        <div class="ha-field-row">
+          <div class="ha-field">
+            <label for="{{ form.presion_sistolica.id_for_label }}">Presión sistólica</label>
+            {{ form.presion_sistolica }}
+            {% if form.presion_sistolica.errors %}<span class="ha-field-error">{{ form.presion_sistolica.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="ha-field">
+            <label for="{{ form.presion_diastolica.id_for_label }}">Presión diastólica</label>
+            {{ form.presion_diastolica }}
+            {% if form.presion_diastolica.errors %}<span class="ha-field-error">{{ form.presion_diastolica.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+        <div class="ha-field-row">
+          <div class="ha-field">
+            <label for="{{ form.glucosa.id_for_label }}">Glucosa (mg/dL)</label>
+            {{ form.glucosa }}
+            {% if form.glucosa.errors %}<span class="ha-field-error">{{ form.glucosa.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="ha-field">
+            <label for="{{ form.colesterol.id_for_label }}">Colesterol (mg/dL)</label>
+            {{ form.colesterol }}
+            {% if form.colesterol.errors %}<span class="ha-field-error">{{ form.colesterol.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+        <div class="ha-field-row">
+          <div class="ha-field">
+            <label for="{{ form.frecuencia_cardiaca.id_for_label }}">Frecuencia cardíaca (bpm)</label>
+            {{ form.frecuencia_cardiaca }}
+            {% if form.frecuencia_cardiaca.errors %}<span class="ha-field-error">{{ form.frecuencia_cardiaca.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="ha-field">
+            <label for="{{ form.saturacion_oxigeno.id_for_label }}">SpO₂ (%)</label>
+            {{ form.saturacion_oxigeno }}
+            {% if form.saturacion_oxigeno.errors %}<span class="ha-field-error">{{ form.saturacion_oxigeno.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+        <div class="ha-field">
+          <label for="{{ form.temperatura.id_for_label }}">Temperatura (°C)</label>
+          {{ form.temperatura }}
+          {% if form.temperatura.errors %}<span class="ha-field-error">{{ form.temperatura.errors.0 }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="ha-form-section">
+        <h4 class="ha-form-section__title">Hábitos y antecedentes</h4>
+        <div class="ha-field ha-field--inline">
+          {{ form.fumador }}
+          <label for="{{ form.fumador.id_for_label }}">Fumador</label>
+        </div>
+        <div class="ha-field ha-field--inline">
+          {{ form.consumo_alcohol }}
+          <label for="{{ form.consumo_alcohol.id_for_label }}">Consumo de alcohol</label>
+        </div>
+        <div class="ha-field ha-field--inline">
+          {{ form.antecedentes_familiares }}
+          <label for="{{ form.antecedentes_familiares.id_for_label }}">Antecedentes familiares</label>
+        </div>
+        <div class="ha-field">
+          <label for="{{ form.actividad_fisica.id_for_label }}">Actividad física</label>
+          {{ form.actividad_fisica }}
+        </div>
+      </div>
+
+      <div class="ha-form-section">
+        <h4 class="ha-form-section__title">Diagnóstico y riesgo</h4>
+        <div class="ha-field">
+          <label for="{{ form.diagnostico_preliminar.id_for_label }}">Diagnóstico preliminar</label>
+          {{ form.diagnostico_preliminar }}
+          {% if form.diagnostico_preliminar.errors %}<span class="ha-field-error">{{ form.diagnostico_preliminar.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="ha-field">
+          <label for="{{ form.riesgo_enfermedad.id_for_label }}">Riesgo</label>
+          <div class="ha-field-row">
+            {{ form.riesgo_enfermedad }}
+            <button type="button" class="ha-btn ha-btn--primary" id="btnPredictAI" style="white-space:nowrap;">🧠 Predict IA</button>
+          </div>
+          {% if form.riesgo_enfermedad.errors %}<span class="ha-field-error">{{ form.riesgo_enfermedad.errors.0 }}</span>{% endif %}
+        </div>
+        <div id="aiPredictionResult" class="ha-muted" style="font-size:.85rem;margin-top:.5rem;"></div>
+      </div>
+
+    </div>
+
+    <div class="ha-form-actions">
+      <a href="{% url 'pacientes' %}" class="ha-btn ha-btn--ghost">Cancelar</a>
+      <button type="submit" class="ha-btn ha-btn--primary">Guardar paciente</button>
+    </div>
+  </form>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('btnPredictAI')?.addEventListener('click', async function() {
+  const result = document.getElementById('aiPredictionResult');
+  result.textContent = 'Prediciendo riesgo...';
+
+  const payload = {
+    edad: parseFloat(document.getElementById('{{ form.edad.id_for_label }}')?.value) || 0,
+    imc: 0,
+    glucosa: parseFloat(document.getElementById('{{ form.glucosa.id_for_label }}')?.value) || 0,
+    colesterol: parseFloat(document.getElementById('{{ form.colesterol.id_for_label }}')?.value) || 0,
+    presion_sistolica: parseFloat(document.getElementById('{{ form.presion_sistolica.id_for_label }}')?.value) || 0,
+    presion_diastolica: parseFloat(document.getElementById('{{ form.presion_diastolica.id_for_label }}')?.value) || 0,
+    frecuencia_cardiaca: parseFloat(document.getElementById('{{ form.frecuencia_cardiaca.id_for_label }}')?.value) || 0,
+    saturacion_oxigeno: parseFloat(document.getElementById('{{ form.saturacion_oxigeno.id_for_label }}')?.value) || 0,
+    fumador: document.getElementById('{{ form.fumador.id_for_label }}')?.checked || false,
+    consumo_alcohol: document.getElementById('{{ form.consumo_alcohol.id_for_label }}')?.checked || false,
+    antecedentes_familiares: document.getElementById('{{ form.antecedentes_familiares.id_for_label }}')?.checked || false,
+  };
+
+  const peso = parseFloat(document.getElementById('{{ form.peso.id_for_label }}')?.value) || 0;
+  const altura = parseFloat(document.getElementById('{{ form.altura.id_for_label }}')?.value) || 0;
+  if (peso > 0 && altura > 0) {
+    payload.imc = Math.round((peso / (altura * altura)) * 100) / 100;
+  }
+
+  try {
+    const resp = await fetch('/api/predicciones/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) {
+      const err = await resp.json();
+      result.textContent = 'Error: ' + (err.detail || 'No se pudo predecir. Entrena el modelo primero.');
+      return;
+    }
+    const data = await resp.json();
+    const riesgoSelect = document.getElementById('{{ form.riesgo_enfermedad.id_for_label }}');
+    for (let opt of riesgoSelect.options) {
+      if (opt.value === data.riesgo_predicho) {
+        riesgoSelect.value = data.riesgo_predicho;
+        break;
+      }
+    }
+    const probs = Object.entries(data.probabilidades)
+      .map(([k, v]) => `${k}: ${(v * 100).toFixed(1)}%`)
+      .join(' | ');
+    result.innerHTML = `🧠 <strong>IA predice:</strong> ${data.riesgo_predicho} <span class="ha-muted">(${probs})</span>`;
+  } catch (e) {
+    result.textContent = 'Error de conexión al servicio de predicción.';
+  }
+});
+</script>
+{% endblock %}

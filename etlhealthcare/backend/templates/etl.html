@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}ETL · HealthAnalytics{% endblock %}
+{% block content %}
+<header class="ha-page-head">
+  <div>
+    <span class="ha-tag">Pipeline</span>
+    <h1 class="ha-h1">Proceso ETL</h1>
+    <p class="ha-muted">Extracción, transformación y carga del dataset clínico con trazabilidad completa.</p>
+  </div>
+</header>
+
+<section class="ha-grid-2">
+  <article class="ha-card ha-card-feature">
+    <header><h3>Cargar dataset</h3><span class="ha-muted">CSV o XLSX</span></header>
+    <form method="post" enctype="multipart/form-data" class="ha-form">
+      {% csrf_token %}
+      <label class="ha-file-drop">
+        <input type="file" name="file" accept=".csv,.xlsx,.xls" required>
+        <span>Selecciona un archivo o arrástralo aquí</span>
+      </label>
+      <button class="ha-btn-primary" type="submit">Ejecutar ETL ahora</button>
+    </form>
+    <ol class="ha-steps">
+      <li><strong>Extract</strong> — lectura del archivo y registro de la fuente.</li>
+      <li><strong>Transform</strong> — limpieza, normalización, imputación, validación clínica, IMC y clasificación de riesgo.</li>
+      <li><strong>Load</strong> — carga atómica en la BD con trazabilidad.</li>
+    </ol>
+  </article>
+
+  <article class="ha-card">
+    <header><h3>Historial de ejecuciones</h3><span class="ha-muted">Últimas 30</span></header>
+    <div class="ha-table-wrap">
+      <table class="ha-table ha-table-compact">
+        <thead><tr><th>Fecha</th><th>Fuente</th><th>Filas</th><th>Dup.</th><th>Nulos</th><th>Outliers</th><th>ms</th><th>Estado</th></tr></thead>
+        <tbody>
+          {% for r in runs %}
+          <tr>
+            <td>{{ r.started_at|date:"d/m H:i" }}</td>
+            <td title="{{ r.source }}">{{ r.source|truncatechars:32 }}</td>
+            <td>{{ r.rows_loaded }}</td>
+            <td>{{ r.duplicates_removed }}</td>
+            <td>{{ r.nulls_imputed }}</td>
+            <td>{{ r.outliers_fixed }}</td>
+            <td>{{ r.duration_ms }}</td>
+            <td><span class="ha-pill ha-pill-{{ r.status }}">{{ r.get_status_display }}</span></td>
+          </tr>
+          {% empty %}<tr><td colspan="8" class="ha-muted">Aún no se han ejecutado procesos ETL.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+{% endblock %}
