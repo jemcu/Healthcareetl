@@ -8,7 +8,8 @@ services:
       pip install --only-binary=:all: pandas numpy scikit-learn &&
       pip install -r requirements.txt &&
       python manage.py collectstatic --noinput
-    startCommand: python manage.py migrate && python manage.py create_default_admin && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 3
+      # Después
+startCommand: python manage.py migrate && python manage.py create_default_users && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 3
     healthCheckPath: /api/schema/
     autoDeploy: true
     envVars:
