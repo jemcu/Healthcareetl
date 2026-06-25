@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Nuevo paciente · HealthAnalytics{% endblock %}
+
+{% block content %}
+<header class="ha-page-head">
+  <div>
+    <span class="ha-tag">Cohorte</span>
+    <h1 class="ha-h1">Nuevo paciente</h1>
+    <p class="ha-muted">Ingresa los datos clínicos manualmente.</p>
+  </div>
+  <a href="{% url 'pacientes' %}" class="ha-btn ha-btn--ghost">← Volver</a>
+</header>
+
+{% if messages %}
+  {% for msg in messages %}
+    <div class="ha-alert ha-alert--{{ msg.tags }}">{{ msg }}</div>
+  {% endfor %}
+{% endif %}
+
+<article class="ha-card">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="ha-form-grid">
+
+      <div class="ha-form-section">
+        <h4 class="ha-form-section__title">Datos personales</h4>
+        <div class="ha-field">
+          <label>Nombres</label>
+          {{ form.nombres }}
+          {% if form.nombres.errors %}<span class="ha-field-error">{{ form.nombres.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="ha-field">
+          <label>Apellidos</label>
+          {{ form.apellidos }}
+          {% if form.apellidos.errors %}<span class="ha-field-error">{{ form.apellidos.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="ha-field-row">
+          <div class="ha-field">
+            <label>Edad</label>
+            {{ form.edad }}
+            {% if form.edad.errors %}<span class="ha-field-error">{{ form.edad.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="ha-field">
+            <label>Sexo</label>
+            {{ form.sexo }}
+            {% if form.sexo.errors %}<span class="ha-field-error">{{ form.sexo.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="ha-form-section">
+        <h4 class="ha-form-section__title">Signos vitales y laboratorio</h4>
+        <div class="ha-field-row">
+          <div class="ha-field">
+            <label>Presión sistólica</label>
+            {{ form.presion_sistolica }}
+            {% if form.presion_sistolica.errors %}<span class="ha-field-error">{{ form.presion_sistolica.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="ha-field">
+            <label>Presión diastólica</label>
+            {{ form.presion_diastolica }}
+            {% if form.presion_diastolica.errors %}<span class="ha-field-error">{{ form.presion_diastolica.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+        <div class="ha-field-row">
+          <div class="ha-field">
+            <label>Glucosa (mg/dL)</label>
+            {{ form.glucosa }}
+            {% if form.glucosa.errors %}<span class="ha-field-error">{{ form.glucosa.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="ha-field">
+            <label>Colesterol (mg/dL)</label>
+            {{ form.colesterol }}
+            {% if form.colesterol.errors %}<span class="ha-field-error">{{ form.colesterol.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="ha-form-section">
+        <h4 class="ha-form-section__title">Diagnóstico y riesgo</h4>
+        <div class="ha-field">
+          <label>Diagnóstico preliminar</label>
+          {{ form.diagnostico_preliminar }}
+          {% if form.diagnostico_preliminar.errors %}<span class="ha-field-error">{{ form.diagnostico_preliminar.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="ha-field">
+          <label>Nivel de riesgo</label>
+          {{ form.riesgo_enfermedad }}
+          {% if form.riesgo_enfermedad.errors %}<span class="ha-field-error">{{ form.riesgo_enfermedad.errors.0 }}</span>{% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="ha-form-actions">
+      <a href="{% url 'pacientes' %}" class="ha-btn ha-btn--ghost">Cancelar</a>
+      <button type="submit" class="ha-btn ha-btn--primary">Guardar paciente</button>
+    </div>
+  </form>
+</article>
+{% endblock %}
