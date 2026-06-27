@@ -3,9 +3,9 @@
 {% block content %}
 <header class="ha-page-head">
   <div>
-    <span class="ha-tag">Modelo predictivo</span>
-    <h1 class="ha-h1">Random Forest clínico</h1>
-    <p class="ha-muted">Predicción de riesgo de enfermedad a partir de variables clínicas y de hábitos.</p>
+    <span class="ha-tag">Ensemble predictivo</span>
+    <h1 class="ha-h1">Ensemble clínico <span style="font-size:0.55em;font-weight:400;color:var(--ha-muted);">RF + XGBoost + GB</span></h1>
+    <p class="ha-muted">Predicción de diagnóstico a partir de variables clínicas y hábitos usando un ensemble de 3 modelos con soft-voting.</p>
   </div>
   <form method="post">{% csrf_token %}<button class="ha-btn-primary" type="submit">Entrenar modelo</button></form>
 </header>
@@ -55,10 +55,20 @@
 {% if metrics %}
 <script>
 const imp = JSON.parse(document.getElementById('data-imp').textContent);
-const labels = Object.keys(imp), values = Object.values(imp);
+const labels = Object.keys(imp).map(k => k.replace(/^(rf|gb|xgb)__/, '$1: '));
+const values = Object.values(imp);
+
+// Colores por modelo
+const colors = labels.map(l => {
+  if (l.startsWith('rf')) return '#0F4C46';
+  if (l.startsWith('gb')) return '#D4663B';
+  if (l.startsWith('xgb')) return '#4A90D9';
+  return '#0F4C46';
+});
+
 new Chart(document.getElementById('chartImp'), {
   type: 'bar',
-  data: { labels, datasets: [{ data: values, backgroundColor: '#0F4C46', borderRadius: 6 }] },
+  data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 6 }] },
   options: { indexAxis: 'y', plugins: { legend: { display: false } },
     scales: { x: { grid: { color: '#eceae3' } }, y: { grid: { display: false } } } }
 });
