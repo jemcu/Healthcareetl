@@ -11,3 +11,4 @@ backend/apps/ml/artifacts/*.pkl
 .DS_Store
 .idea/
 .vscode/
+nul
