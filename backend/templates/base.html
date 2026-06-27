@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}HealthAnalytics IPS{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="{% static 'css/app.css' %}" rel="stylesheet">
+</head>
+<body>
+{% if user.is_authenticated %}
+<nav class="ha-nav">
+  <div class="ha-nav-brand">
+    <span class="ha-logo-mark">◐</span>
+    <div>
+      <div class="ha-brand-name">HealthAnalytics</div>
+      <div class="ha-brand-sub">IPS · Plataforma Clínica</div>
+    </div>
+  </div>
+  <ul class="ha-nav-links">
+    <li><a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Dashboard</a></li>
+    <li><a href="{% url 'pacientes' %}" class="{% if request.resolver_match.url_name == 'pacientes' %}active{% endif %}">Pacientes</a></li>
+    <li><a href="{% url 'etl' %}" class="{% if request.resolver_match.url_name == 'etl' %}active{% endif %}">ETL</a></li>
+    <li><a href="{% url 'ml' %}" class="{% if request.resolver_match.url_name == 'ml' %}active{% endif %}">Machine Learning</a></li>
+    <li><a href="{% url 'reportes' %}" class="{% if request.resolver_match.url_name == 'reportes' %}active{% endif %}">Reportes</a></li>
+    <li><a href="/api/docs/" target="_blank">API</a></li>
+  </ul>
+  <div class="ha-nav-user">
+    <div class="ha-user-chip">
+      <span class="ha-avatar">{{ user.username|slice:":1"|upper }}</span>
+      <div>
+        <div class="ha-user-name">{{ user.username }}</div>
+        <div class="ha-user-role">{{ user.get_role_display }}</div>
+      </div>
+    </div>
+    <a href="{% url 'logout' %}" class="ha-btn-ghost">Salir</a>
+  </div>
+</nav>
+{% endif %}
+
+<main class="ha-main">
+  {% if messages %}
+    {% for m in messages %}
+      <div class="ha-alert ha-alert-{{ m.tags }}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="ha-footer">
+  <span>HealthAnalytics IPS · v1.0 · ETL · Analítica · ML</span>
+  <span>© {% now "Y" %}</span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

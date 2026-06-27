@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Acceso · HealthAnalytics IPS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="{% static 'css/app.css' %}" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+</head>
+<body class="ha-auth-body">
+<div class="ha-auth-shell">
+  <aside class="ha-auth-aside">
+    <h1 class="ha-auth-title">Analítica clínica<br><em>inteligente.</em></h1>
+    <p class="ha-auth-lede">ETL automatizado, KPIs médicos y predicción de riesgo sobre cohortes reales de pacientes.</p>
+    <ul class="ha-auth-features">
+      <li><span>01</span> Limpieza y normalización de datos clínicos</li>
+      <li><span>02</span> Clasificación de riesgo en cuatro niveles</li>
+      <li><span>03</span> Modelos predictivos con Random Forest</li>
+      <li><span>04</span> Dashboards y reportes exportables</li>
+    </ul>
+    <div class="ha-auth-meta">HealthAnalytics IPS · Plataforma v1.0</div>
+  </aside>
+  <section class="ha-auth-form">
+    <div class="ha-auth-form-inner">
+      <span class="ha-tag">Acceso restringido</span>
+      <h2>Inicia sesión</h2>
+      {% if messages %}{% for m in messages %}<div class="ha-alert ha-alert-error">{{ m }}</div>{% endfor %}{% endif %}
+      <form method="post" class="ha-form">
+        {% csrf_token %}
+        <label>Usuario
+          <input name="username" required autocomplete="username" placeholder="admin">
+        </label>
+        <label>Contraseña
+          <input name="password" type="password" required autocomplete="current-password" placeholder="••••••••">
+        </label>
+        <button type="submit" class="ha-btn-primary">Entrar al panel</button>
+      </form>
+     <div class="ha-auth-demo">
+  <div class="ha-auth-demo__row">
+
+<!-- Acceso rápido por rol -->
+<div class="quick-roles">
+  <button class="role-btn" onclick="fillLogin('admin','admin123')" type="button">
+    <div class="role-circle icon-admin"><i class="ti ti-shield-check"></i></div>
+    <span class="role-label">Admin</span>
+  </button>
+  <button class="role-btn" onclick="fillLogin('medico','medico123')" type="button">
+    <div class="role-circle icon-medico"><i class="ti ti-plus"></i></div>
+    <span class="role-label">Médico</span>
+  </button>
+  <button class="role-btn" onclick="fillLogin('analista','analista123')" type="button">
+    <div class="role-circle icon-analista"><i class="ti ti-report-analytics"></i></div>
+    <span class="role-label">Analista</span>
+  </button>
+</div>
+
+<script>
+function fillLogin(user, pass) {
+  document.querySelector('input[name="username"]').value = user;
+  document.querySelector('input[name="password"]').value = pass;
+}
+</script>

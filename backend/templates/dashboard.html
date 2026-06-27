@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Clínico · HealthAnalytics{% endblock %}
+{% block content %}
+<header class="ha-page-head">
+  <div>
+    <span class="ha-tag">Panel ejecutivo</span>
+    <h1 class="ha-h1">Estado clínico de los pacientes</h1>
+    <p class="ha-muted">Indicadores en tiempo real sobre los {{ kpis.total }} pacientes cargados.</p>
+  </div>
+  <div class="ha-page-actions">
+    <a href="{% url 'etl' %}" class="ha-btn-ghost">Ejecutar ETL</a>
+    <a href="{% url 'reportes' %}" class="ha-btn-primary">Exportar reporte</a>
+  </div>
+</header>
+
+{% if kpis.total == 0 %}
+<div class="ha-empty">
+  <h2>Aún no hay datos clínicos</h2>
+  <p>Carga el dataset desde la sección <a href="{% url 'etl' %}">ETL</a> para activar los indicadores.</p>
+</div>
+{% else %}
+
+<section class="ha-kpi-grid">
+  <article class="ha-kpi ha-kpi-feature">
+    <div class="ha-kpi-label">Pacientes totales</div>
+    <div class="ha-kpi-value">{{ kpis.total }}</div>
+    <div class="ha-kpi-foot">Edad media · {{ kpis.edad_promedio }} años</div>
+  </article>
+  <article class="ha-kpi"><div class="ha-kpi-label">Críticos</div><div class="ha-kpi-value ha-text-danger">{{ kpis.criticos }}</div><div class="ha-kpi-foot">Atención inmediata</div></article>
+  <article class="ha-kpi"><div class="ha-kpi-label">Alto riesgo</div><div class="ha-kpi-value ha-text-warn">{{ kpis.alto_riesgo }}</div><div class="ha-kpi-foot">Seguimiento prioritario</div></article>
+  <article class="ha-kpi"><div class="ha-kpi-label">Hipertensos</div><div class="ha-kpi-value">{{ kpis.hipertensos }}</div><div class="ha-kpi-foot">PAS ≥ 140 mmHg</div></article>
+  <article class="ha-kpi"><div class="ha-kpi-label">Diabéticos</div><div class="ha-kpi-value">{{ kpis.diabeticos }}</div><div class="ha-kpi-foot">Glucosa ≥ 126</div></article>
+  <article class="ha-kpi"><div class="ha-kpi-label">Obesidad</div><div class="ha-kpi-value">{{ kpis.obesidad }}</div><div class="ha-kpi-foot">IMC promedio {{ kpis.imc_promedio }}</div></article>
+  <article class="ha-kpi"><div class="ha-kpi-label">Fumadores</div><div class="ha-kpi-value">{{ kpis.fumadores }}</div><div class="ha-kpi-foot">Hábito activo</div></article>
+</section>
+
+<section class="ha-grid-2">
+  <article class="ha-card">
+    <header><h3>Distribución por riesgo</h3><span class="ha-muted">Clasificación clínica</span></header>
+    <div class="chart-wrap">
+      <canvas id="chartRiesgo"></canvas>
+    </div>
+  </article>
+  <article class="ha-card">
+    <header><h3>Tendencia por edad</h3><span class="ha-muted">Críticos vs. alto riesgo</span></header>
+    <div class="chart-wrap">
+      <canvas id="chartEdad"></canvas>
+    </div>
+  </article>
+</section>
+
+<section class="ha-grid-3">
+  <article class="ha-card">
+    <header><h3>Sexo</h3></header>
+    <div class="chart-wrap chart-wrap--sm">
+      <canvas id="chartSexo"></canvas>
+    </div>
+  </article>
+  <article class="ha-card">
+    <header><h3>IMC</h3></header>
+    <div class="chart-wrap chart-wrap--sm">
+      <canvas id="chartIMC"></canvas>
+    </div>
+  </article>
+  <article class="ha-card">
+    <header><h3>Diagnósticos top</h3></header>
+    <div class="chart-wrap chart-wrap--sm">
+      <canvas id="chartDiag"></canvas>
+    </div>
+  </article>
+</section>
+
+<section class="ha-card">
+  <header>
+    <h3>Pacientes en estado crítico</h3>
+    <a href="{% url 'pacientes' %}?riesgo=critico" class="ha-link">Ver todos →</a>
+  </header>
+  <div class="ha-table-wrap">
+    <table class="ha-table">
+      <thead><tr><th>ID</th><th>Nombre</th><th>Edad</th><th>P. Sistólica</th><th>Glucosa</th><th>SpO₂</th><th>Riesgo</th></tr></thead>
+      <tbody>
+      {% for p in criticos %}
+        <tr><td>{{ p.id }}</td><td>{{ p.nombre }}</td><td>{{ p.edad }}</td><td>{{ p.presion }}</td><td>{{ p.glucosa }}</td><td>{{ p.spo2 }}</td><td><span class="ha-pill ha-pill-{{ p.riesgo }}">{{ p.riesgo }}</span></td></tr>
+      {% empty %}<tr><td colspan="7" class="ha-muted">No hay pacientes críticos detectados.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{{ riesgo|json_script:"data-riesgo" }}
+{{ sexo|json_script:"data-sexo" }}
+{{ imc|json_script:"data-imc" }}
+{{ diagnosticos|json_script:"data-diag" }}
+{{ edad_seg|json_script:"data-edad" }}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if kpis.total %}
+<script src="{% load static %}{% static 'js/dashboard.js' %}"></script>
+{% endif %}
+{% endblock %}

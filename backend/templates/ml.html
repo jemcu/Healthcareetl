@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Machine Learning · HealthAnalytics{% endblock %}
+{% block content %}
+<header class="ha-page-head">
+  <div>
+    <span class="ha-tag">Modelo predictivo</span>
+    <h1 class="ha-h1">Random Forest clínico</h1>
+    <p class="ha-muted">Predicción de riesgo de enfermedad a partir de variables clínicas y de hábitos.</p>
+  </div>
+  <form method="post">{% csrf_token %}<button class="ha-btn-primary" type="submit">Entrenar modelo</button></form>
+</header>
+
+{% if metrics %}
+<section class="ha-kpi-grid">
+  <article class="ha-kpi ha-kpi-feature">
+    <div class="ha-kpi-label">Accuracy</div>
+    <div class="ha-kpi-value">{{ metrics.accuracy|floatformat:3 }}</div>
+    <div class="ha-kpi-foot">Predicciones correctas / total</div>
+  </article>
+  <article class="ha-kpi"><div class="ha-kpi-label">Precision</div><div class="ha-kpi-value">{{ metrics.precision|floatformat:3 }}</div></article>
+  <article class="ha-kpi"><div class="ha-kpi-label">Recall</div><div class="ha-kpi-value">{{ metrics.recall|floatformat:3 }}</div></article>
+  <article class="ha-kpi"><div class="ha-kpi-label">F1-Score</div><div class="ha-kpi-value">{{ metrics.f1|floatformat:3 }}</div></article>
+  <article class="ha-kpi"><div class="ha-kpi-label">Muestras</div><div class="ha-kpi-value">{{ metrics.n_samples }}</div></article>
+</section>
+
+<section class="ha-grid-2">
+  <article class="ha-card">
+    <header><h3>Matriz de confusión</h3><span class="ha-muted">Clases: {{ metrics.classes|join:", " }}</span></header>
+    <table class="ha-confusion">
+      <thead><tr><th></th>{% for c in metrics.classes %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for row in metrics.confusion_matrix %}
+        <tr><th>{{ metrics.classes|slice:forloop.counter0|last|default:'' }}</th>
+          {% for v in row %}<td><span class="ha-conf-cell" style="--w:{{ v }}">{{ v }}</span></td>{% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+  <article class="ha-card">
+    <header><h3>Importancia de variables</h3></header>
+    <canvas id="chartImp" height="240"></canvas>
+  </article>
+</section>
+{{ metrics.feature_importances|json_script:"data-imp" }}
+{% else %}
+<div class="ha-empty">
+  <h2>El modelo aún no está entrenado</h2>
+  <p>Carga primero el dataset desde el ETL y luego entrena el modelo desde el botón superior.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if metrics %}
+<script>
+const imp = JSON.parse(document.getElementById('data-imp').textContent);
+const labels = Object.keys(imp), values = Object.values(imp);
+new Chart(document.getElementById('chartImp'), {
+  type: 'bar',
+  data: { labels, datasets: [{ data: values, backgroundColor: '#0F4C46', borderRadius: 6 }] },
+  options: { indexAxis: 'y', plugins: { legend: { display: false } },
+    scales: { x: { grid: { color: '#eceae3' } }, y: { grid: { display: false } } } }
+});
+</script>
+{% endif %}
+{% endblock %}
