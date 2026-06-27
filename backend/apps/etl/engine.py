@@ -14,6 +14,13 @@ from django.db import transaction
 
 from .models import ETLRun, Paciente
 
+from apps.etl.diagnosis import normalize as _diagnosis_normalize
+
+
+def _normalize_diag(value):
+    """Wrapper que usa fallback_title=True para datos crudos del Excel."""
+    return _diagnosis_normalize(value, fallback_title=True)
+
 
 NUM_WORDS_ES = {
     "cero": 0, "uno": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5,
@@ -60,30 +67,6 @@ def _to_bool(value):
     s = _strip_accents(str(value)).strip().lower()
     return s in {"true", "1", "si", "yes", "y", "verdadero", "v"}
 
-
-DIAG_MAP = {
-    "hipertension": "Hipertensión",
-    "diabetes": "Diabetes",
-    "obesidad": "Obesidad",
-    "asma": "Asma",
-    "cardiopatia": "Cardiopatía",
-    "epoc": "EPOC",
-    "anemia": "Anemia",
-    "normal": "Sin diagnóstico",
-    "sano": "Sin diagnóstico",
-    "ninguno": "Sin diagnóstico",
-}
-
-
-def _normalize_diag(value):
-    if pd.isna(value):
-        return "Sin diagnóstico"
-    s = _strip_accents(str(value)).strip().lower()
-    s = re.sub(r"[^a-z\s]", "", s)
-    for key, canonical in DIAG_MAP.items():
-        if key in s:
-            return canonical
-    return s.title() if s else "Sin diagnóstico"
 
 
 def _normalize_sexo(value):

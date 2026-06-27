@@ -1,12 +1,11 @@
 """Entrenamiento y predicción con Random Forest - versión optimizada para Render."""
-import re
-import unicodedata
 from pathlib import Path
 
 import joblib
 import numpy as np
 import pandas as pd
 
+from apps.etl.diagnosis import normalize as _normalize_diag
 from apps.etl.models import Paciente
 from .models import ModelMetrics
 
@@ -21,44 +20,6 @@ FEATURES_ALL = [
     "fumador", "consumo_alcohol", "antecedentes_familiares",
 ]
 TARGET = "diagnostico_preliminar"
-
-DIAG_MAP = {
-    "hipertension":          "Hipertensión",
-    "hipertensión":          "Hipertensión",
-    "diabetes":              "Diabetes",
-    "obesidad":              "Obesidad",
-    "asma":                  "Asma",
-    "cardiopatia":           "Cardiopatía",
-    "cardiopatía":           "Cardiopatía",
-    "epoc":                  "EPOC",
-    "anemia":                "Anemia",
-    "riesgo cardiovascular": "Riesgo Cardiovascular",
-    "cardiovascular":        "Riesgo Cardiovascular",
-    "normal":                "Sin diagnóstico",
-    "sano":                  "Sin diagnóstico",
-    "ninguno":               "Sin diagnóstico",
-    "sin diagnostico":       "Sin diagnóstico",
-    "sin diagnóstico":       "Sin diagnóstico",
-    "ninguna":               "Sin diagnóstico",
-    "no aplica":             "Sin diagnóstico",
-}
-
-
-def _strip_accents(s: str) -> str:
-    return "".join(
-        c for c in unicodedata.normalize("NFD", s)
-        if unicodedata.category(c) != "Mn"
-    )
-
-
-def _normalize_diag(value):
-    if pd.isna(value) or str(value).strip() == "":
-        return "Sin diagnóstico"
-    s_clean = re.sub(r"[^a-z\s]", "", _strip_accents(str(value)).lower()).strip()
-    for key, canonical in DIAG_MAP.items():
-        if _strip_accents(key).lower() in s_clean:
-            return canonical
-    return str(value).strip().title()
 
 
 def _get_available_features() -> list:
