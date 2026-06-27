@@ -23,9 +23,6 @@ FEATURES_BASE = [
 FEATURES_ENGINEERED = [
     "imc_glucosa",
     "edad_presion_sistolica",
-    "colesterol_glucosa_ratio",
-    "score_riesgo_metabolico",
-    "edad_imc",
 ]
 
 TARGET = "diagnostico_preliminar"
@@ -37,30 +34,16 @@ def _get_available_features() -> list:
 
 
 def _engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Crea features de interacción clínicamente relevantes."""
     df = df.copy()
     df["imc_glucosa"] = df["imc"] * df["glucosa"]
     df["edad_presion_sistolica"] = df["edad"] * df["presion_sistolica"]
-    df["colesterol_glucosa_ratio"] = df["colesterol"] / (df["glucosa"] + 1)
-    df["score_riesgo_metabolico"] = (df["imc"] * df["glucosa"] * df["presion_sistolica"]) / 1000
-    df["edad_imc"] = df["edad"] * df["imc"]
     return df
 
 
 def _engineer_features_dict(row: dict) -> dict:
-    """Crea features de interacción a partir de un dict con valores base."""
     row = dict(row)
-    imc = row["imc"]
-    glucosa = row["glucosa"]
-    colesterol = row["colesterol"]
-    edad = row["edad"]
-    presion_sistolica = row["presion_sistolica"]
-
-    row["imc_glucosa"] = imc * glucosa
-    row["edad_presion_sistolica"] = edad * presion_sistolica
-    row["colesterol_glucosa_ratio"] = colesterol / (glucosa + 1)
-    row["score_riesgo_metabolico"] = (imc * glucosa * presion_sistolica) / 1000
-    row["edad_imc"] = edad * imc
+    row["imc_glucosa"] = row["imc"] * row["glucosa"]
+    row["edad_presion_sistolica"] = row["edad"] * row["presion_sistolica"]
     return row
 
 
@@ -130,11 +113,16 @@ def train() -> ModelMetrics:
     #   - Generalmente mas preciso que RF en datos tabulares
     #   - class_weight="balanced" ayuda con clases desbalanceadas
     clf = HistGradientBoostingClassifier(
-        max_iter=300,
+        max_iter=150,
         learning_rate=0.1,
-        max_depth=5,
+        max_depth=3,
         min_samples_leaf=20,
         class_weight="balanced",
+        early_stopping=True,
+        validation_fraction=0.1,
+        n_iter_no_change=10,
+        max_bins=64,
+        l2_regularization=0.1,
         random_state=42,
     )
 
