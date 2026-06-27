@@ -13,6 +13,8 @@ DIAG_MAP: dict[str, str] = {
     "hipertension":          "Hipertensión",
     "hipertensión":          "Hipertensión",
     "hipertensi":            "Hipertensión",
+    "hipertencion":          "Hipertensión",
+    "hipertención":          "Hipertensión",
     "hta":                   "Hipertensión",
     "diabetes":              "Diabetes",
     "diabete":               "Diabetes",
