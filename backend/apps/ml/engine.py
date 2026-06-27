@@ -75,6 +75,11 @@ def _dataset(base_features: list) -> pd.DataFrame:
     # Ingenieria de caracteristicas (interacciones)
     df = _engineer_features(df)
 
+    all_feats = base_features + FEATURES_ENGINEERED
+    for c in all_feats:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
+
     return df
 
 
@@ -93,6 +98,13 @@ def train() -> ModelMetrics:
         raise RuntimeError(f"Solo hay {len(df)} registros. Se necesitan al menos 20.")
 
     all_features = base_features + FEATURES_ENGINEERED
+
+    non_num = [c for c in all_features if df[c].dtype == "object"]
+    if non_num:
+        raise TypeError(
+            f"Columnas no numéricas detectadas: {non_num}. "
+            "Revisa que los datos cargados sean válidos."
+        )
 
     X = df[all_features].values
     y = df[TARGET].values
@@ -173,7 +185,10 @@ def predict(paciente_id: int) -> dict:
     row = _engineer_features_dict(row)
 
     # Construir vector en el orden exacto que uso el modelo entrenado
-    X = np.array([[row[f] for f in features]])
+    try:
+        X = np.array([[float(row[f]) for f in features]], dtype=np.float64)
+    except (ValueError, TypeError) as exc:
+        raise TypeError(f"Error al convertir features a numérico para predicción: {exc}")
     proba = clf.predict_proba(X)[0]
     top_indices = np.argsort(proba)[::-1][:3]
     top3 = [
