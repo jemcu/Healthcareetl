@@ -7,11 +7,36 @@
     <h1 class="ha-h1">Pacientes</h1>
     <p class="ha-muted">
       {{ pacientes|length }} registros
-      {% if riesgo %} · filtrado por riesgo <strong>{{ riesgo }}</strong>{% endif %}.
+      {% if riesgo %} · filtrado por riesgo <strong>{{ riesgo }}</strong>{% endif %}
+      {% if busqueda %} · búsqueda: <strong>{{ busqueda }}</strong>{% endif %}.
     </p>
   </div>
   <div class="ha-page-head__actions">
+
+    <!-- Buscador -->
     <form method="get" class="ha-inline-form">
+      {% if riesgo %}
+        <input type="hidden" name="riesgo" value="{{ riesgo }}">
+      {% endif %}
+      <input
+        type="text"
+        name="q"
+        value="{{ busqueda }}"
+        placeholder="Buscar por nombre o ID…"
+        class="ha-input"
+        style="min-width:220px;"
+      >
+      <button type="submit" class="ha-btn ha-btn--secondary">Buscar</button>
+      {% if busqueda %}
+        <a href="?{% if riesgo %}riesgo={{ riesgo }}{% endif %}" class="ha-btn ha-btn--ghost">✕ Limpiar</a>
+      {% endif %}
+    </form>
+
+    <!-- Filtro riesgo -->
+    <form method="get" class="ha-inline-form">
+      {% if busqueda %}
+        <input type="hidden" name="q" value="{{ busqueda }}">
+      {% endif %}
       <select name="riesgo" onchange="this.form.submit()">
         <option value="">Todos los riesgos</option>
         <option value="bajo"    {% if riesgo == 'bajo'    %}selected{% endif %}>Bajo</option>
@@ -20,6 +45,7 @@
         <option value="critico" {% if riesgo == 'critico' %}selected{% endif %}>Crítico</option>
       </select>
     </form>
+
     <a href="{% url 'paciente_crear' %}" class="ha-btn ha-btn--primary">+ Nuevo paciente</a>
   </div>
 </header>
@@ -63,7 +89,13 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="10" class="ha-muted">No hay pacientes cargados. Ejecuta el ETL.</td>
+          <td colspan="10" class="ha-muted">
+            {% if busqueda %}
+              No se encontraron pacientes para "<strong>{{ busqueda }}</strong>".
+            {% else %}
+              No hay pacientes cargados. Ejecuta el ETL.
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
       </tbody>
