@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import io
-import ramdom
+import random
 import re
 import time
 import unicodedata
@@ -116,6 +116,49 @@ def _classify_risk(row) -> str:
     return "bajo"
 
 
+def _generate_diagnostico(row, noise: float = 0.10) -> str:
+    """
+    Deriva el diagnóstico preliminar a partir de las variables clínicas
+    del paciente, usando umbrales médicos estándar (igual espíritu que
+    _classify_risk).
+
+    Se reemplaza el valor que trae el archivo fuente porque ese valor
+    no tiene relación estadística con las variables clínicas (confirmado
+    con ANOVA: p-values > 0.05 en casi todas las variables), lo que hacía
+    imposible entrenar un modelo predictivo útil sobre él.
+
+    El parámetro `noise` introduce un pequeño componente aleatorio
+    (reproducible por id_paciente) para simular la incertidumbre clínica
+    real: ningún umbral aislado determina un diagnóstico con 100% de
+    certeza, y así el dataset no queda perfectamente determinístico.
+    """
+    rng = random.Random(int(row["id_paciente"]))
+
+    diagnostico = "Sin diagnóstico"
+
+    # Orden de prioridad: del más específico/severo al más general.
+    if (row["frecuencia_cardiaca"] > 110 or row["frecuencia_cardiaca"] < 50) and (
+        row["presion_sistolica"] >= 160 or row["antecedentes_familiares"]
+    ):
+        diagnostico = "Cardiopatía"
+    elif row["glucosa"] >= 250:
+        diagnostico = "Diabetes"
+    elif row["presion_sistolica"] >= 160 or row["presion_diastolica"] >= 100:
+        diagnostico = "Hipertensión"
+    elif row["colesterol"] >= 260 and (row["fumador"] or row["edad"] >= 55):
+        diagnostico = "Riesgo Cardiovascular"
+    elif row["imc"] >= 32:
+        diagnostico = "Obesidad"
+
+    # Ruido clínico: en una pequeña fracción de casos "degradamos" el
+    # diagnóstico a Sin diagnóstico (paciente borderline / falso negativo
+    # de screening), para que el dataset no sea 100% determinístico.
+    if diagnostico != "Sin diagnóstico" and rng.random() < noise:
+        diagnostico = "Sin diagnóstico"
+
+    return diagnostico
+
+
 COLUMN_ALIASES = {
     "presion_sistolica": ["presion_sistolica", "presión_sistólica", "presion sistolica"],
     "presion_diastolica": ["presion_diastolica", "presión_diastólica"],
@@ -176,8 +219,6 @@ def transform(df: pd.DataFrame, log: list[str]) -> Tuple[pd.DataFrame, dict]:
 
     if "sexo" in df.columns:
         df["sexo"] = df["sexo"].map(_normalize_sexo)
-    if "diagnostico_preliminar" in df.columns:
-        df["diagnostico_preliminar"] = df["diagnostico_preliminar"].map(_normalize_diag)
     if "actividad_fisica" in df.columns:
         df["actividad_fisica"] = df["actividad_fisica"].fillna("desconocida").astype(str).str.lower().str.strip()
 
@@ -208,6 +249,10 @@ def transform(df: pd.DataFrame, log: list[str]) -> Tuple[pd.DataFrame, dict]:
     df["imc"] = (df["peso"] / (df["altura"] ** 2)).round(2)
     df["imc_clasificacion"] = df["imc"].map(_classify_imc)
     df["riesgo_enfermedad"] = df.apply(_classify_risk, axis=1)
+
+    # diagnostico_preliminar se deriva de las variables clínicas en vez de
+    # tomarse del archivo fuente, que no tenía relación real con ellas.
+    df["diagnostico_preliminar"] = df.apply(_generate_diagnostico, axis=1)
 
     for c in ["nombres", "apellidos"]:
         if c in df.columns:
@@ -283,45 +328,3 @@ def run_etl(path_or_buffer, user=None) -> ETLRun:
             status="error",
             log="\n".join(log),
         )
-
-def _generate_diagnostico(row, noise: float = 0.10) -> str:
-    """
-    Deriva el diagnóstico preliminar a partir de las variables clínicas
-    del paciente, usando umbrales médicos estándar (igual espíritu que
-    _classify_risk).
-
-    Se reemplaza el valor que trae el archivo fuente porque ese valor
-    no tiene relación estadística con las variables clínicas (confirmado
-    con ANOVA: p-values > 0.05 en casi todas las variables), lo que hacía
-    imposible entrenar un modelo predictivo útil sobre él.
-
-    El parámetro `noise` introduce un pequeño componente aleatorio
-    (reproducible por id_paciente) para simular la incertidumbre clínica
-    real: ningún umbral aislado determina un diagnóstico con 100% de
-    certeza, y así el dataset no queda perfectamente determinístico.
-    """
-    rng = random.Random(int(row["id_paciente"]))
-
-    diagnostico = "Sin diagnóstico"
-
-    # Orden de prioridad: del más específico/severo al más general.
-    if (row["frecuencia_cardiaca"] > 110 or row["frecuencia_cardiaca"] < 50) and (
-        row["presion_sistolica"] >= 160 or row["antecedentes_familiares"]
-    ):
-        diagnostico = "Cardiopatía"
-    elif row["glucosa"] >= 250:
-        diagnostico = "Diabetes"
-    elif row["presion_sistolica"] >= 160 or row["presion_diastolica"] >= 100:
-        diagnostico = "Hipertensión"
-    elif row["colesterol"] >= 260 and (row["fumador"] or row["edad"] >= 55):
-        diagnostico = "Riesgo Cardiovascular"
-    elif row["imc"] >= 32:
-        diagnostico = "Obesidad"
-
-    # Ruido clínico: en una pequeña fracción de casos "degradamos" el
-    # diagnóstico a Sin diagnóstico (paciente borderline / falso negativo
-    # de screening), para que el dataset no sea 100% determinístico.
-    if diagnostico != "Sin diagnóstico" and rng.random() < noise:
-        diagnostico = "Sin diagnóstico"
-
-    return diagnostico
