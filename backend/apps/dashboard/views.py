@@ -29,23 +29,23 @@ def logout_view(request):
 @login_required
 def home(request):
     return render(request, "dashboard.html", {
-        "kpis": analytics.kpis(),
-        "riesgo": analytics.distribucion_riesgo(),
-        "sexo": analytics.distribucion_sexo(),
-        "imc": analytics.distribucion_imc(),
+        "kpis":        analytics.kpis(),
+        "riesgo":      analytics.distribucion_riesgo(),
+        "sexo":        analytics.distribucion_sexo(),
+        "imc":         analytics.distribucion_imc(),
         "diagnosticos": analytics.top_diagnosticos(),
-        "edad_seg": analytics.segmentacion_edad(),
-        "criticos": analytics.pacientes_criticos(10),
+        "edad_seg":    analytics.segmentacion_edad(),
+        "criticos":    analytics.pacientes_criticos(10),
     })
 
 
 @login_required
 def pacientes_view(request):
-    qs = Paciente.objects.all()
+    qs = Paciente.objects.all().order_by('id_paciente')
     riesgo = request.GET.get("riesgo")
     if riesgo:
         qs = qs.filter(riesgo_enfermedad=riesgo)
-    return render(request, "pacientes.html", {"pacientes": qs[:200], "riesgo": riesgo})
+    return render(request, "pacientes.html", {"pacientes": qs, "riesgo": riesgo})
 
 
 @login_required
