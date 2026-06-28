@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Q
 from apps.analytics import services as analytics
 from apps.etl.models import Paciente, ETLRun
 from apps.etl.engine import run_etl
@@ -29,23 +30,37 @@ def logout_view(request):
 @login_required
 def home(request):
     return render(request, "dashboard.html", {
-        "kpis":        analytics.kpis(),
-        "riesgo":      analytics.distribucion_riesgo(),
-        "sexo":        analytics.distribucion_sexo(),
-        "imc":         analytics.distribucion_imc(),
+        "kpis":         analytics.kpis(),
+        "riesgo":       analytics.distribucion_riesgo(),
+        "sexo":         analytics.distribucion_sexo(),
+        "imc":          analytics.distribucion_imc(),
         "diagnosticos": analytics.top_diagnosticos(),
-        "edad_seg":    analytics.segmentacion_edad(),
-        "criticos":    analytics.pacientes_criticos(10),
+        "edad_seg":     analytics.segmentacion_edad(),
+        "criticos":     analytics.pacientes_criticos(10),
     })
 
 
 @login_required
 def pacientes_view(request):
     qs = Paciente.objects.all().order_by('id_paciente')
-    riesgo = request.GET.get("riesgo")
+    riesgo = request.GET.get("riesgo", "")
+    busqueda = request.GET.get("q", "").strip()
+
     if riesgo:
         qs = qs.filter(riesgo_enfermedad=riesgo)
-    return render(request, "pacientes.html", {"pacientes": qs, "riesgo": riesgo})
+
+    if busqueda:
+        qs = qs.filter(
+            Q(nombres__icontains=busqueda) |
+            Q(apellidos__icontains=busqueda) |
+            Q(id_paciente__icontains=busqueda)
+        )
+
+    return render(request, "pacientes.html", {
+        "pacientes": qs,
+        "riesgo":    riesgo,
+        "busqueda":  busqueda,
+    })
 
 
 @login_required
