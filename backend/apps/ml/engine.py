@@ -85,6 +85,7 @@ def _dataset(base_features: list) -> pd.DataFrame:
 
 def train() -> ModelMetrics:
     from sklearn.ensemble import HistGradientBoostingClassifier
+    from sklearn.inspection import permutation_importance
     from sklearn.metrics import (
         accuracy_score, precision_score, recall_score,
         f1_score, confusion_matrix,
@@ -142,6 +143,16 @@ def train() -> ModelMetrics:
     y_pred = clf.predict(X_te)
     classes = sorted(np.unique(y).tolist())
 
+    # HistGradientBoostingClassifier no expone feature_importances_ nativo
+    # (a diferencia de RandomForest/GradientBoosting clásicos), así que
+    # usamos permutation_importance, que funciona con cualquier modelo.
+    perm_result = permutation_importance(
+        clf, X_te, y_te, n_repeats=10, random_state=42, n_jobs=-1
+    )
+    feature_importances = dict(
+        zip(all_features, [float(v) for v in perm_result.importances_mean])
+    )
+
     metrics = ModelMetrics.objects.create(
         accuracy=float(accuracy_score(y_te, y_pred)),
         precision=float(precision_score(y_te, y_pred, average="weighted", zero_division=0)),
@@ -149,9 +160,7 @@ def train() -> ModelMetrics:
         f1=float(f1_score(y_te, y_pred, average="weighted", zero_division=0)),
         confusion_matrix=confusion_matrix(y_te, y_pred, labels=classes).tolist(),
         classes=classes,
-        feature_importances=dict(
-            zip(all_features, [float(v) for v in clf.feature_importances_])
-        ),
+        feature_importances=feature_importances,
         n_samples=len(df),
     )
 
