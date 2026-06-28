@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Pacientes · HealthAnalytics{% endblock %}
+
 {% block content %}
 <header class="ha-page-head">
   <div>
     <h1 class="ha-h1">Pacientes</h1>
-    <p class="ha-muted">{{ pacientes|length }} primeros registros{% if riesgo %} · filtrado por riesgo <strong>{{ riesgo }}</strong>{% endif %}.</p>
+    <p class="ha-muted">
+      {{ pacientes|length }} registros
+      {% if riesgo %} · filtrado por riesgo <strong>{{ riesgo }}</strong>{% endif %}.
+    </p>
   </div>
   <div class="ha-page-head__actions">
     <form method="get" class="ha-inline-form">
@@ -41,15 +45,22 @@
           <th>Colesterol</th>
           <th>Diagnóstico</th>
           <th>Riesgo</th>
+          <th>Predicción ML</th>
         </tr>
       </thead>
       <tbody>
         {% for p in pacientes %}
-        <tr data-paciente-id="{{ p.id_paciente }}" data-edad="{{ p.edad }}" data-imc="{{ p.imc }}"
-            data-glucosa="{{ p.glucosa }}" data-colesterol="{{ p.colesterol }}"
-            data-sistolica="{{ p.presion_sistolica }}" data-diastolica="{{ p.presion_diastolica }}"
-            data-fc="{{ p.frecuencia_cardiaca }}" data-spo2="{{ p.saturacion_oxigeno }}"
-            data-fumador="{{ p.fumador|lower }}" data-alcohol="{{ p.consumo_alcohol|lower }}"
+        <tr data-paciente-id="{{ p.id_paciente }}"
+            data-edad="{{ p.edad }}"
+            data-imc="{{ p.imc }}"
+            data-glucosa="{{ p.glucosa }}"
+            data-colesterol="{{ p.colesterol }}"
+            data-sistolica="{{ p.presion_sistolica }}"
+            data-diastolica="{{ p.presion_diastolica }}"
+            data-fc="{{ p.frecuencia_cardiaca }}"
+            data-spo2="{{ p.saturacion_oxigeno }}"
+            data-fumador="{{ p.fumador|lower }}"
+            data-alcohol="{{ p.consumo_alcohol|lower }}"
             data-antecedentes="{{ p.antecedentes_familiares|lower }}">
           <td>{{ p.id_paciente }}</td>
           <td>{{ p.nombres }} {{ p.apellidos }}</td>
@@ -62,6 +73,11 @@
           <td>{{ p.diagnostico_preliminar }}</td>
           <td><span class="ha-pill ha-pill-{{ p.riesgo_enfermedad }}">{{ p.get_riesgo_enfermedad_display }}</span></td>
           <td>
+            <button class="ha-btn ha-btn--sm ha-btn-predict">Predecir</button>
+            <span class="ha-predict-result" style="display:none;"></span>
+          </td>
+        </tr>
+        {% empty %}
         <tr>
           <td colspan="11" class="ha-muted">No hay pacientes cargados. Ejecuta el ETL.</td>
         </tr>
@@ -75,7 +91,7 @@
 {% block scripts %}
 <script>
 document.querySelectorAll('.ha-btn-predict').forEach(btn => {
-  btn.addEventListener('click', async function() {
+  btn.addEventListener('click', async function () {
     const tr = this.closest('tr');
     const resultSpan = tr.querySelector('.ha-predict-result');
     this.disabled = true;
@@ -83,15 +99,44 @@ document.querySelectorAll('.ha-btn-predict').forEach(btn => {
     resultSpan.style.display = 'none';
 
     const payload = {
-      edad: parseFloat(tr.dataset.edad) || 0,
-      imc: parseFloat(tr.dataset.imc) || 0,
-      glucosa: parseFloat(tr.dataset.glucosa) || 0,
-      colesterol: parseFloat(tr.dataset.colesterol) || 0,
-      presion_sistolica: parseFloat(tr.dataset.sistolica) || 0,
+      edad:               parseFloat(tr.dataset.edad)       || 0,
+      imc:                parseFloat(tr.dataset.imc)        || 0,
+      glucosa:            parseFloat(tr.dataset.glucosa)    || 0,
+      colesterol:         parseFloat(tr.dataset.colesterol) || 0,
+      presion_sistolica:  parseFloat(tr.dataset.sistolica)  || 0,
       presion_diastolica: parseFloat(tr.dataset.diastolica) || 0,
-      frecuencia_cardiaca: parseFloat(tr.dataset.fc) || 0,
-      saturacion_oxigeno: parseFloat(tr.dataset.spo2) || 0,
-      fumador: tr.dataset.fumador === 'true',
-      consumo_alcohol: tr.dataset.alcohol === 'true',
+      frecuencia_cardiaca:parseFloat(tr.dataset.fc)         || 0,
+      saturacion_oxigeno: parseFloat(tr.dataset.spo2)       || 0,
+      fumador:             tr.dataset.fumador      === 'true',
+      consumo_alcohol:     tr.dataset.alcohol      === 'true',
       antecedentes_familiares: tr.dataset.antecedentes === 'true',
     };
+
+    try {
+      const resp = await fetch('/api/ml/predict/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? '',
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        resultSpan.textContent = data.diagnostico ?? data.prediccion ?? JSON.stringify(data);
+        resultSpan.style.display = 'inline';
+      } else {
+        resultSpan.textContent = 'Error: ' + (data.detail ?? resp.status);
+        resultSpan.style.display = 'inline';
+      }
+    } catch (e) {
+      resultSpan.textContent = 'Error de red';
+      resultSpan.style.display = 'inline';
+    } finally {
+      this.disabled = false;
+      this.textContent = 'Predecir';
+    }
+  });
+});
+</script>
+{% endblock %}
