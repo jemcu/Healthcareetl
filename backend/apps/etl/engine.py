@@ -282,3 +282,45 @@ def run_etl(path_or_buffer, user=None) -> ETLRun:
             status="error",
             log="\n".join(log),
         )
+
+def _generate_diagnostico(row, noise: float = 0.10) -> str:
+    """
+    Deriva el diagnóstico preliminar a partir de las variables clínicas
+    del paciente, usando umbrales médicos estándar (igual espíritu que
+    _classify_risk).
+
+    Se reemplaza el valor que trae el archivo fuente porque ese valor
+    no tiene relación estadística con las variables clínicas (confirmado
+    con ANOVA: p-values > 0.05 en casi todas las variables), lo que hacía
+    imposible entrenar un modelo predictivo útil sobre él.
+
+    El parámetro `noise` introduce un pequeño componente aleatorio
+    (reproducible por id_paciente) para simular la incertidumbre clínica
+    real: ningún umbral aislado determina un diagnóstico con 100% de
+    certeza, y así el dataset no queda perfectamente determinístico.
+    """
+    rng = random.Random(int(row["id_paciente"]))
+
+    diagnostico = "Sin diagnóstico"
+
+    # Orden de prioridad: del más específico/severo al más general.
+    if (row["frecuencia_cardiaca"] > 110 or row["frecuencia_cardiaca"] < 50) and (
+        row["presion_sistolica"] >= 160 or row["antecedentes_familiares"]
+    ):
+        diagnostico = "Cardiopatía"
+    elif row["glucosa"] >= 250:
+        diagnostico = "Diabetes"
+    elif row["presion_sistolica"] >= 160 or row["presion_diastolica"] >= 100:
+        diagnostico = "Hipertensión"
+    elif row["colesterol"] >= 260 and (row["fumador"] or row["edad"] >= 55):
+        diagnostico = "Riesgo Cardiovascular"
+    elif row["imc"] >= 32:
+        diagnostico = "Obesidad"
+
+    # Ruido clínico: en una pequeña fracción de casos "degradamos" el
+    # diagnóstico a Sin diagnóstico (paciente borderline / falso negativo
+    # de screening), para que el dataset no sea 100% determinístico.
+    if diagnostico != "Sin diagnóstico" and rng.random() < noise:
+        diagnostico = "Sin diagnóstico"
+
+    return diagnostico
